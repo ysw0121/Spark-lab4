@@ -38,6 +38,8 @@ $ pip install pyspark
 运行示例文件，执行如下：
 ![run-example](img/pyspark-example.png)
 
+综上，spark环境local模式已完成，可以成功运行。
+
 ## 任务一
 ### 设计思路
 
