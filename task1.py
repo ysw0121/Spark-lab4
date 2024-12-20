@@ -15,7 +15,7 @@ def func(task_id):
         # to df
         df=data_task1.map(lambda x:(x[0],x[1][0],x[1][1])).toDF(['report_date','total_purchase_amt','total_redeem_amt'])
         df.show()
-        df.coalesce(1).write.csv("file:///home/siwenyu/桌面/Spark-lab4/res/task1_1",header=True)
+        df.coalesce(1).write.mode("overwrite").csv("file:///home/siwenyu/桌面/Spark-lab4/res/task1_1",header=True)
     elif task_id==2:
         # task1_2
         # active user_id according to recorder date num >=5 in august
@@ -28,6 +28,6 @@ def func(task_id):
     else:
         pass
 
-# func(1)
+func(1)
 func(2)
 
