@@ -109,7 +109,7 @@ num = data_task2.count()
 ```
 计算活跃用户的数量并打印。
 ### 运行截图
-两次任务截图如下，任务1详情输出见`res`文件夹中(task1_1)[res/task1_1]：
+两次任务截图如下，任务1详情输出见`res`文件夹中[task1_1](res/task1_1)：
 ![task1_1](img/task1_1.png)
 ![task1_2](img/task1_2.png)
 ## 任务二
@@ -138,7 +138,7 @@ num = data_task2.count()
 注意，`write.mode("overwrite")` 指定写入模式为覆盖，如果目标路径已存在文件则会被覆盖。
 
 ### 运行截图
-两个子任务输出结果如下，详情见`res`文件夹中(task2_1)[res/task2_1]和(task2_2)[res/task2_2]。
+两个子任务输出结果如下，详情见`res`文件夹中[task2_1](res/task2_1)和[task2_2](res/task2_2)。
 ![task2_1](img/task2_1.png)
 ![task2_2](img/task2_2.png)
 ## 任务三
