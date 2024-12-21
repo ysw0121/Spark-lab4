@@ -56,7 +56,7 @@ data = spark.read.csv("file:///home/siwenyu/桌面/Spark-lab4/data/user_balance_
 
 **读取文件遇到的问题**
 
-因为我没有配置`Hadoop`环境，而`Spark`采用惰性机制，只有遇到“行动”类型的操作，才会从头到尾执行所有操作。因此，要加载本地文件时候，必须采用`file:///`开头的这种格式。[（参考）](https://blog.csdn.net/abcdrachel/article/details/100122059)
+因为我没有配置`Hadoop`环境，而`Spark`采用惰性机制，只有遇到“行动”类型的操作，才会从头到尾执行所有操作。当我只写相对路径时，系统自动会从`hdfs`读取文件，但是我并没上传，因此不断报错读取失败。因此，要加载本地文件时候，必须采用`file:///`开头的这种格式。[（参考）](https://blog.csdn.net/abcdrachel/article/details/100122059)
 
 **3. 选择列和过滤数据**
 ```
@@ -109,14 +109,38 @@ num = data_task2.count()
 ```
 计算活跃用户的数量并打印。
 ### 运行截图
-两次任务截图如下：
+两次任务截图如下，任务1详情输出见`res`文件夹中(task1_1)[res/task1_1]：
 ![task1_1](img/task1_1.png)
 ![task1_2](img/task1_2.png)
 ## 任务二
 ### 设计思路
+**1. 开始阶段与上面类似，但是需要读取`CSV`文件，创建临时视图，以便在 `SQL` 查询中使用。**
+
+**2. 计算每个城市的平均余额（在 2014 年 3 月 1 日）**
+* 使用 SQL 语句连接 `user_profile_table` 和 `user_balance_tabl`e，条件是 `up.user_id=ub.user_id`。
+* 过滤出 `report_date` 为 '20140301' 的记录。
+* 按城市分组，并计算每个城市的平均余额。
+* 按平均余额降序排列。
+* `res1.show()` 显示查询结果。
+
+  
+**3. 找出每个城市在2014年8月资金流动量排名前三的用户**
+* 使用 SQL 语句连接 `user_profile_table` 和 `user_balance_table`，条件是 `up.user_id = ub.user_id`。
+* 过滤出`report_date`为 `'201408%'` 的记录（即 2014 年 8 月）。
+* 计算每个用户的总资金流动量（购买金额 + 赎回金额）。
+* 使用窗口函数 `RANK()` 按城市分组，并按总资金流动量降序排列，计算排名。
+* 外层查询选择排名在前三的用户。
+* `res2.show()` 显示查询结果。
+
+**事实上，这两个子任务思路基本从参照`实验三`，与任务2和4的SQL语句基本一致。**
+
+**4. 输出结果文件**
+注意，`write.mode("overwrite")` 指定写入模式为覆盖，如果目标路径已存在文件则会被覆盖。
 
 ### 运行截图
-
+两个子任务输出结果如下，详情见`res`文件夹中(task2_1)[res/task2_1]和(task2_2)[res/task2_2]。
+![task2_1](img/task2_1.png)
+![task2_2](img/task2_2.png)
 ## 任务三
 ### 设计思路
 
