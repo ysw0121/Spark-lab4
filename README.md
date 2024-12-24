@@ -1,7 +1,9 @@
 # Spark-lab4
 
 ## 文件说明
-按`task1,2,3.py`命名代码文件，输出数据在`res`文件夹下，按各个任务命名。
+按`task1,2,3.py/ipynb`命名代码文件，输出数据在`res`文件夹下，按各个任务命名。
+
+在结果文件夹中，`task3`是提交到天池中的数据，后续输出的数据在`task3_sqrt`中，但是直接可以看出不如原来或者与原来预测甚至一致，因此没再提交。
 
 ## Spark环境配置
 实验中用`local`模式即可，无需配置集群。因此不涉及其他配置，下载好直接解压即可，压缩包中自带`Scala`环境。解压命令如下：
@@ -79,7 +81,7 @@ reduceByKey(lambda x, y: (x[0] + y[0], x[1] + y[1]))
 ```
 按日期聚合，计算每天的总购买金额和总赎回金额。将结果转换为 DataFrame 并显示，保存为 CSV 文件，使用 `coalesce(1)` 确保输出为一个文件。
 
-**5. 任务 2 (task_id == 2)**
+**5. 子任务 2 (task_id == 2)**
 
 目标：找出 2014 年 8 月记录日期数大于等于 5 的活跃用户。
 
@@ -143,11 +145,57 @@ num = data_task2.count()
 ![task2_2](img/task2_2.png)
 ## 任务三
 ### 设计思路
+**1. 数据读取与预处理**
+首先会话建立，读取文件，定义一个基准日期 `base_date`，为 `"2013-07-01"`，并将其转换为日期类型。使用 withColumn 方法将 report_date 列中的字符串转换为日期类型，格式为 "yyyyMMdd"。计算每个日期与基准日期之间的天数差，并将结果存储在新的 `sequence` 列中。
 
+从原始`df` 中选择`sequence` 和 `total_purchase_amt` 列，并按 `sequence` 列排序，创建一个新的 `DataFrame`，同样地，选择 `sequence` 和 `total_redeem_am`t 列，并排序，创建另一个。
+
+检查 `total_purchase_amt` 和 `total_redeem_amt` 列中是否存在空值。（此处代码已注释，因为输出没有空值）
+
+将金额总值列的数据类型转换为双精度浮点数（double）。
+
+将 `sequence` 列转换为特征向量（`features`），并将 `val_col` 列重命名为 `label`。
+
+**2. 模型训练与预测**
+
+导入多种回归模型类，包括 `IsotonicRegression`、`GBTRegressor`、`RandomForestRegressor` 和 `GeneralizedLinearRegression`。使用不同的回归模型进行训练，前三个输出结果30天预测值完全一样，最终选择了 `GeneralizedLinearRegression` 模型。
+
+```
+# iso_reg=IsotonicRegression(featuresCol="features",labelCol="label")
+# purchase_model=iso_reg.fit(purchase)
+# redeem_model=iso_reg.fit(redeem)
+
+# gbt=GBTRegressor(featuresCol="features",labelCol="label",maxIter=100,seed=1,stepSize=0.1,maxDepth=7)
+# purchase_model=gbt.fit(purchase)
+# redeem_model=gbt.fit(redeem)
+
+# rf=RandomForestRegressor(featuresCol="features",labelCol="label",maxDepth=7,numTrees=100,seed=1)
+# purchase_model=rf.fit(purchase)
+# redeem_model=rf.fit(redeem)
+
+glr=GeneralizedLinearRegression(featuresCol="features",labelCol="label",family="gaussian",maxIter=520,regParam=0.233,tol=1e-7,link="log",linkPower=3.3)
+purchase_model=glr.fit(purchase)
+redeem_model=glr.fit(redeem)
+```
+
+使用 `GeneralizedLinearRegression` 模型分别对 `purchase` 和 `redeem` 数据进行训练，部分参数说明如下：
+* family="gaussian"：指定响应变量的分布族为高斯分布。
+* maxIter=520：设置最大迭代步数为 520，以提高模型的拟合精度。
+* regParam=0.233：设置 l2 正则系数为 0.233，用于防止过拟合。
+* tol=1e-7：设置收敛精度为 1e-7，以确保模型训练的精度。
+* link="log"：指定**连接函数为对数函数**，适用于高斯分布。
+* linkPower=3.3：设置连接函数的超参为 3.3，但由于分布族为 "gaussian"，该参数不会生效。
+  
+获取最后一个日期的特征值，生成未来 30 天的日期序列，并将其转换为`DataFrame`，使用`VectorAssembler`将日期列转换为特征向量，并分别使用训练好的模型对 `future_days_df` 进行预测，得到`purchase_future`和`redeem_future`。
 ### 运行截图
+输出结果如下：
+![task3](img/task3.png)
 
-## 任务四
-### 设计思路
+最高成绩如下：
+![final_submit](img/final_submit.png)
 
-### 运行截图
+前期提交说明：
+
+指定响应变量的分布族为高斯分布，但连接函数为全等函数（下）和使用分布族为泊松分布（上）的成绩如下：
+![pre_submit](img/pre_submit.png)
 
